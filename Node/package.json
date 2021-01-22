@@ -1,0 +1,16 @@
+{
+  "name": "practica1_enunciado",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "Michel Maes",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.618.0",
+    "express": "^4.17.1",
+    "body-parser": "^1.18.2"
+  }
+}
