@@ -1,4 +1,4 @@
-package es.urjc.code.daw.library.mock;
+package es.urjc.code.daw.library.controller;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -46,10 +46,8 @@ public class BookRestController {
 	}
 
 	@PostMapping("/")
-	@ResponseStatus(HttpStatus.CREATED)
-	public Book createBook(@RequestBody Book book) {
-
-		return service.save(book);
+	public ResponseEntity<Book> createBook(@RequestBody Book book) {
+		return new ResponseEntity<>(service.save(book), HttpStatus.CREATED);
 	}
 
 	@PutMapping("/{id}")

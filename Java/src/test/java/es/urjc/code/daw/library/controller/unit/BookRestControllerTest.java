@@ -1,8 +1,19 @@
-package es.urjc.code.daw.library.mock;
+package es.urjc.code.daw.library.controller.unit;
 
-import com.google.gson.Gson;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import es.urjc.code.daw.library.book.Book;
 import es.urjc.code.daw.library.book.BookService;
+import es.urjc.code.daw.library.util.TestUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -16,20 +27,10 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("MockMVC BookRestControllerTests")
-class BookMockControllerTest {
+class BookRestControllerTest {
 
   @Autowired
   private MockMvc mvc;
@@ -42,11 +43,11 @@ class BookMockControllerTest {
   class givenNoLoggedUser {
 
     @Nested
-    @DisplayName("when the user get all books ")
+    @DisplayName("when the user gets all books ")
     class whenGetAllBooks {
 
       @Test
-      @DisplayName("then the user should get all books ")
+      @DisplayName("then the user should get all books")
       public void thenShouldGetAllBooks() throws Exception {
         String title = "Book 1";
         String description = "book 1 description";
@@ -89,13 +90,14 @@ class BookMockControllerTest {
         String title = "Book 1";
         String description = "book 1 description";
         Book book = new Book(title, description);
-        Mockito.when(bookService.save(book)).thenReturn(book);
-        Gson gson = new Gson();
+        Mockito.when(bookService.save(Mockito.any())).thenReturn(book);
 
         mvc.perform(post("/api/books/")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(gson.toJson(book)))
-            .andExpect(status().isCreated());
+            .content(TestUtils.asJsonString(book))
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.title", equalTo(title)))
+            .andExpect(jsonPath("$.description", equalTo(description)));
       }
     }
   }
@@ -121,8 +123,8 @@ class BookMockControllerTest {
       }
 
       @Test
-      @DisplayName("then should return ok")
-      @WithMockUser(username = "username", roles =  "ADMIN")
+      @DisplayName("then should return throw exception")
+      @WithMockUser(username = "username", roles = "ADMIN")
       public void thenShouldThrowException() throws Exception {
         long id = 2;
         Mockito.doThrow(EmptyResultDataAccessException.class).when(bookService).delete(id);
@@ -134,4 +136,5 @@ class BookMockControllerTest {
     }
 
   }
+
 }
