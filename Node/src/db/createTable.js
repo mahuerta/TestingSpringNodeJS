@@ -7,15 +7,15 @@ const createTable = async (tableName) => {
     // Create client at function level to have right config
     const dynamobDB = new AWS.DynamoDB();
 
-    return dynamobDB.createTable({ 
-        TableName: tableName, 
+    return dynamobDB.createTable({
+        TableName: tableName,
         AttributeDefinitions: [
             {
                 AttributeName: 'id',
                 AttributeType: 'N'
             },
         ],
-        KeySchema: [ 
+        KeySchema: [
             {
                 AttributeName: 'id',
                 KeyType: 'HASH'
