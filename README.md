@@ -10,7 +10,7 @@ Spring y Node.js 👨🏻‍💻 </h1>
   </a>
 </p>
 
-Proyecto para introducir test unitarios y rest en un encunciado facilitado por el profesor.
+Proyecto para introducir test unitarios y de integración en un encunciado facilitado por el profesor.
 
 ## Authors
 👤 **JuanCBM**: Juan Carlos Blázquez Muñoz
