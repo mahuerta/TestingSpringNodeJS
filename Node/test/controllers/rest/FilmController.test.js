@@ -51,6 +51,19 @@ test('Get films', async () => {
 
 })
 
+test('Get no films', async () => {
+  let data = {
+    "Items": []
+  }
+
+  const response = await request.get('/api/films/')
+  .expect('Content-type', /json/)
+  .expect(200)
+
+  expect(response.body).toEqual(expect.arrayContaining(data.Items));
+
+})
+
 test('Create film', async () => {
   let film = {
     "titulo": "TITULO"
