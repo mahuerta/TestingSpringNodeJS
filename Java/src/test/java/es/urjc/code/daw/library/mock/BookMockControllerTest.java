@@ -1,4 +1,4 @@
-package es.urjc.code.daw.library.rest;
+package es.urjc.code.daw.library.mock;
 
 import com.google.gson.Gson;
 import es.urjc.code.daw.library.book.Book;
@@ -15,7 +15,6 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("MockMVC BookRestControllerTests")
-class BookRestControllerTest {
+class BookMockControllerTest {
 
   @Autowired
   private MockMvc mvc;
