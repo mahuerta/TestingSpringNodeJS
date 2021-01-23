@@ -1,4 +1,4 @@
-package es.urjc.code.daw.library.controller.e2e;
+package es.urjc.code.daw.library.controller.rest;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.path.json.JsonPath.from;
@@ -12,7 +12,6 @@ import es.urjc.code.daw.library.util.TestUtils;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

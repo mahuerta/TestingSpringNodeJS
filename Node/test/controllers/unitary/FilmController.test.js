@@ -31,7 +31,24 @@ test('Get films', async () => {
 
 })
 
-test('Get films', async () => {
+test('Get no films', async () => {
+  let data = {
+    "Items": []
+  }
+
+  AWS.DynamoDB.DocumentClient.prototype.scan.mockImplementation((_, cb) => {
+    cb(null, data);
+  });
+
+  const response = await request.get('/api/films/')
+  .expect('Content-type', /json/)
+  .expect(200)
+
+  expect(response.body).toEqual(expect.arrayContaining(data.Items));
+
+})
+
+test('Create film', async () => {
   let film = {
         "titulo":"TITULO"
       };
@@ -42,6 +59,7 @@ test('Get films', async () => {
 
   const response = await request.post('/api/films/')
   .expect('Content-type', /json/)
+  .send(film)
   .expect(201)
 
   expect(response.body.id).toEqual((expect.any(Number)));
