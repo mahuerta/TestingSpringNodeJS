@@ -10,11 +10,11 @@ test('Get films', async () => {
     "Items": [
       {
         "id": 1,
-        "titulo":"TITULO"
+        "titulo": "TITULO"
       },
       {
         "id": 2,
-        "titulo":"TITULO 2"
+        "titulo": "TITULO 2"
       }
     ]
   }
@@ -50,8 +50,8 @@ test('Get no films', async () => {
 
 test('Create film', async () => {
   let film = {
-        "titulo":"TITULO"
-      };
+    "titulo": "TITULO"
+  };
 
   AWS.DynamoDB.DocumentClient.prototype.put.mockImplementation((_, cb) => {
     cb(null, film);

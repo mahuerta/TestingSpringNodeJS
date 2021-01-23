@@ -1,7 +1,7 @@
 const app = require('../../../src/app')
 const supertest = require('supertest');
 const createTableIfNotExist = require("../../../src/db/createTable")
-const { GenericContainer } = require("testcontainers");
+const {GenericContainer} = require("testcontainers");
 let AWS = require('aws-sdk');
 
 const request = supertest(app);
@@ -9,9 +9,12 @@ const request = supertest(app);
 let dynamodbContainer;
 
 beforeAll(async () => {
-  dynamodbContainer = await new GenericContainer("amazon/dynamodb-local","1.13.6")
+  dynamodbContainer = await new GenericContainer("amazon/dynamodb-local",
+      "1.13.6")
   .withExposedPorts(8000)
-  .start().catch((err)=>{console.log(err)});
+  .start().catch((err) => {
+    console.log(err)
+  });
 
   AWS.config.update({
     region: process.env.AWS_REGION || 'local',
@@ -29,7 +32,7 @@ afterAll(async () => {
 
 test('Get films', async () => {
   let film = {
-    "titulo":"TITULO"
+    "titulo": "TITULO"
   };
 
   const responseCreation = await request.post('/api/films/')
@@ -50,7 +53,7 @@ test('Get films', async () => {
 
 test('Create film', async () => {
   let film = {
-    "titulo":"TITULO"
+    "titulo": "TITULO"
   };
 
   const response = await request.post('/api/films/')
