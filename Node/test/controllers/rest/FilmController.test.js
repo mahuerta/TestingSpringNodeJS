@@ -1,20 +1,25 @@
 const app = require('../../../src/app')
 const supertest = require('supertest');
 const createTableIfNotExist = require("../../../src/db/createTable")
-const {GenericContainer} = require("testcontainers");
+const { GenericContainer } = require("testcontainers");
 let AWS = require('aws-sdk');
 
 const request = supertest(app);
 
 let dynamodbContainer;
 
+const persistDB = async (request) => {
+  const film = { title: 'Watchmen', year : 2009, director: 'Zack Snyder'};
+    await request.post('/api/films').send(film).expect(201);
+}
+
 beforeAll(async () => {
   dynamodbContainer = await new GenericContainer("amazon/dynamodb-local",
-      "1.13.6")
-  .withExposedPorts(8000)
-  .start().catch((err) => {
-    console.log(err)
-  });
+    "1.13.6")
+    .withExposedPorts(8000)
+    .start().catch((err) => {
+      console.log(err)
+    });
 
   AWS.config.update({
     region: process.env.AWS_REGION || 'local',
@@ -24,56 +29,62 @@ beforeAll(async () => {
   });
 
   await createTableIfNotExist("films");
+  await persistDB(request);
+
 });
 
 afterAll(async () => {
-  await dynamodbContainer.stop();
+  if (!!dynamodbContainer) {
+    await dynamodbContainer.stop();
+  }
 });
 
+const film = { title: 'StarWars La Amenaza fantasma', year: 1999, director: 'George Lucas' };
+
 test('Get films', async () => {
-  let film = {
-    "titulo": "TITULO"
-  };
 
-  const responseCreation = await request.post('/api/films/')
-  .expect('Content-type', /json/)
-  .send(film)
-  .expect(201)
 
-  const response = await request.get('/api/films/')
-  .expect('Content-type', /json/)
-  .expect(200)
+  const response = await request.get('/api/films/').expect(200);
+  const [{title, id}] = response.body;
 
-  expect(response.body).toContainEqual(responseCreation.body);
+  expect(response.statusCode).toBe(200);
+  expect(id).toBe(0);
+  expect(title).toBe('Watchmen');
 
-  // Como no tenemos borrado, puede afectar el orden, por eso se utiliza mayor o igual
-  expect(response.body.length).toBeGreaterThanOrEqual(1)
 
-})
+
+});
 
 test('Get no films', async () => {
   let data = {
     "Items": []
   }
 
+
   const response = await request.get('/api/films/')
-  .expect('Content-type', /json/)
-  .expect(200)
+    .expect('Content-type', /json/)
+    .expect(200)
+  const [{ title, id }] = response.body;
 
   expect(response.body).toEqual(expect.arrayContaining(data.Items));
-
-})
+  expect(response.statusCode).toBe(200);
+  //Devuelve pelis? hay que mirarlo bien 
+  expect(id).toBe(1);
+  expect(title).toBe(film.title);
+});
 
 test('Create film', async () => {
-  let film = {
-    "titulo": "TITULO"
-  };
 
   const response = await request.post('/api/films/')
-  .expect('Content-type', /json/)
-  .send(film)
-  .expect(201)
+    .expect('Content-type', /json/)
+    .send(film)
+    .expect(201);
+  const { title, year, director, id } = response.body;
 
-  expect(response.body.id).toEqual((expect.any(Number)));
 
-})
+  expect(id).toEqual((expect.any(Number)));
+  expect(title).toBe(film.title);
+  expect(year).toBe(film.year);
+  expect(director).toBe(film.director);
+  expect(response.statusCode).toBe(201);
+});
