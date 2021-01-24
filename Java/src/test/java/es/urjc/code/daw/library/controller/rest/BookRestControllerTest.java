@@ -131,7 +131,7 @@ class BookRestControllerTest {
     .then()
         .statusCode(HttpStatus.OK.value());
 
-    // Compruebo recuperar libro NO escorrecto
+    // Compruebo recuperar libro NO es correcto
     given()
         .relaxedHTTPSValidation()
     .when()
