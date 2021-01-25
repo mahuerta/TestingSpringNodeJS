@@ -5,6 +5,7 @@ import static org.springframework.web.reactive.function.client.ExchangeFilterFun
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.urjc.code.daw.library.book.Book;
+import es.urjc.code.daw.library.util.BookTestUtils;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
@@ -26,10 +27,7 @@ import reactor.netty.http.client.HttpClient;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
-public class BookRestControllerWebclientTest {
-
-  private final String exampleTitle = "Book";
-  private final String exampleDescription = "Book description";
+public class BookRestControllerWebclientTest extends BookTestUtils {
 
   private WebTestClient webTestClient;
 
@@ -42,10 +40,13 @@ public class BookRestControllerWebclientTest {
         .forClient()
         .trustManager(InsecureTrustManagerFactory.INSTANCE)
         .build();
+
     HttpClient httpClient = HttpClient.create()
         .secure(sslSpec -> sslSpec.sslContext(sslContext))
         .baseUrl("https://localhost:" + port);
+
     ClientHttpConnector connector = new ReactorClientHttpConnector(httpClient);
+
     this.webTestClient = WebTestClient
         .bindToServer(connector)
         .build();
@@ -72,7 +73,7 @@ public class BookRestControllerWebclientTest {
   @DisplayName("Given logged user with role USER, when creates new book, then should return ok")
   public void givenLoggedUserWhenSaveNewBookThenShouldReturnOk() throws JsonProcessingException {
     // Create book
-    WebTestClient.ResponseSpec responseCreate = this.createBook(exampleTitle, exampleDescription);
+    WebTestClient.ResponseSpec responseCreate = this.createBook(EXAMPLE_TITLE, EXAMPLE_DESCRIPTION);
 
     // Header validation
     responseCreate
@@ -91,9 +92,9 @@ public class BookRestControllerWebclientTest {
         .isOk()
         .expectBody().jsonPath("id").isNotEmpty()
         .jsonPath("title")
-        .value(Matchers.containsStringIgnoringCase(exampleTitle))
+        .value(Matchers.containsStringIgnoringCase(EXAMPLE_TITLE))
         .jsonPath("description")
-        .value(Matchers.containsStringIgnoringCase(exampleDescription));
+        .value(Matchers.containsStringIgnoringCase(EXAMPLE_DESCRIPTION));
 
     // Delete book
     deleteBook(bookCreated.getId());
@@ -104,7 +105,7 @@ public class BookRestControllerWebclientTest {
   public void givenLoggedUserAsAdminWhenDeletesBookThenShouldReturnOk()
       throws JsonProcessingException {
     // Create book
-    WebTestClient.ResponseSpec responseCreate = this.createBook(exampleTitle, exampleDescription);
+    WebTestClient.ResponseSpec responseCreate = this.createBook(EXAMPLE_TITLE, EXAMPLE_DESCRIPTION);
     Book bookCreated = new ObjectMapper().readValue(new String(responseCreate.expectBody().returnResult().getResponseBody()), Book.class);
 
     // Delete book
@@ -139,7 +140,7 @@ public class BookRestControllerWebclientTest {
         .mutate().filter(basicAuthentication("user", "pass")).build()
         .post()
         .uri("/api/books/")
-        .body(Mono.just(new Book(exampleTitle, exampleDescription)), Book.class)
+        .body(Mono.just(new Book(EXAMPLE_TITLE, EXAMPLE_DESCRIPTION)), Book.class)
         .exchange();
   }
 

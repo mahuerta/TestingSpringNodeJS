@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import es.urjc.code.daw.library.book.Book;
 import es.urjc.code.daw.library.book.BookService;
+import es.urjc.code.daw.library.util.BookTestUtils;
 import es.urjc.code.daw.library.util.TestUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,11 +31,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("MockMVC BookRestControllerTests")
-class BookRestControllerTest {
-
-  private final String exampleTitle = "Book";
-  private final String exampleDescription = "Book description";
-  private final String bookSequel = " 2";
+class BookRestControllerTest extends BookTestUtils {
 
   @Autowired
   private MockMvc mvc;
@@ -53,16 +50,16 @@ class BookRestControllerTest {
       @Test
       @DisplayName("then the user should get all books")
       public void thenShouldGetAllBooks() throws Exception {
-        List<Book> books = Arrays.asList(new Book(exampleTitle, exampleDescription),
-                                         new Book(exampleTitle + bookSequel, exampleDescription + bookSequel));
+        List<Book> books = Arrays.asList(new Book(EXAMPLE_TITLE, EXAMPLE_DESCRIPTION),
+                                         new Book(EXAMPLE_TITLE + BOOK_SEQUEL, EXAMPLE_DESCRIPTION + BOOK_SEQUEL));
         Mockito.when(bookService.findAll()).thenReturn(books);
 
         mvc.perform(get("/api/books/")
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$", hasSize(2)))
-            .andExpect(jsonPath("$[0].title", equalTo(exampleTitle)))
-            .andExpect(jsonPath("$[0].description", equalTo(exampleDescription)));
+            .andExpect(jsonPath("$[0].title", equalTo(EXAMPLE_TITLE)))
+            .andExpect(jsonPath("$[0].description", equalTo(EXAMPLE_DESCRIPTION)));
       }
 
       @Test
@@ -90,15 +87,15 @@ class BookRestControllerTest {
       @DisplayName("then should return book created")
       @WithMockUser(username = "username", roles = "USER")
       public void thenShouldReturnBook() throws Exception {
-        Book book = new Book(exampleTitle, exampleDescription);
+        Book book = new Book(EXAMPLE_TITLE, EXAMPLE_DESCRIPTION);
         Mockito.when(bookService.save(Mockito.any())).thenReturn(book);
 
         mvc.perform(post("/api/books/")
             .content(TestUtils.asJsonString(book))
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.title", equalTo(exampleTitle)))
-            .andExpect(jsonPath("$.description", equalTo(exampleDescription)));
+            .andExpect(jsonPath("$.title", equalTo(EXAMPLE_TITLE)))
+            .andExpect(jsonPath("$.description", equalTo(EXAMPLE_DESCRIPTION)));
       }
     }
   }

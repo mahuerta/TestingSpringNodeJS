@@ -8,6 +8,7 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.notNullValue;
 
 import es.urjc.code.daw.library.book.Book;
+import es.urjc.code.daw.library.util.BookTestUtils;
 import es.urjc.code.daw.library.util.TestUtils;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -21,10 +22,8 @@ import org.springframework.http.HttpStatus;
 
 @DisplayName("REST Assured BookRestControllerTests")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class BookRestControllerTest {
+class BookRestControllerTest extends BookTestUtils {
 
-  private final String exampleTitle = "Book 1";
-  private final String exampleDescription = "Book 1 description";
   private String baseUrl;
 
   @LocalServerPort
@@ -55,15 +54,15 @@ class BookRestControllerTest {
   @DisplayName("Given logged user with role USER, when creates new book, then should return ok")
   public void givenLoggedUserWhenSaveNewBookThenShouldReturnOk() {
     // Create Book
-    Response responseCreate = createBook(exampleTitle, exampleDescription);
+    Response responseCreate = createBook(EXAMPLE_TITLE, EXAMPLE_DESCRIPTION);
 
     // Validations
     responseCreate
         .then()
           .statusCode(HttpStatus.CREATED.value())
           .body("id", notNullValue(),
-              "title", equalTo(exampleTitle),
-              "description", containsStringIgnoringCase(exampleDescription));
+              "title", equalTo(EXAMPLE_TITLE),
+              "description", containsStringIgnoringCase(EXAMPLE_DESCRIPTION));
 
     Integer id = from(responseCreate.getBody().asString()).get("id");
 
@@ -72,8 +71,8 @@ class BookRestControllerTest {
         .then()
           .statusCode(HttpStatus.OK.value())
           .body("id", notNullValue(),
-              "title", equalTo(exampleTitle),
-              "description", containsStringIgnoringCase(exampleDescription));
+              "title", equalTo(EXAMPLE_TITLE),
+              "description", containsStringIgnoringCase(EXAMPLE_DESCRIPTION));
 
     // Delete book
     deleteBook(id);
@@ -83,7 +82,7 @@ class BookRestControllerTest {
   @DisplayName("Given logged user as role: ADMIN, when deletes book, then should return ok")
   public void givenLoggedUserAsAdminWhenDeletesBookThenShouldReturnOk() {
     // Create Book
-    Response responseCreate = createBook(exampleTitle, exampleDescription);
+    Response responseCreate = createBook(EXAMPLE_TITLE, EXAMPLE_DESCRIPTION);
     Integer id = from(responseCreate.getBody().asString()).get("id");
 
     // Delete book

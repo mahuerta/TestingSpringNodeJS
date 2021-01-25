@@ -4,6 +4,7 @@ import static org.springframework.web.reactive.function.client.ExchangeFilterFun
 
 import es.urjc.code.daw.library.book.Book;
 import es.urjc.code.daw.library.book.BookService;
+import es.urjc.code.daw.library.util.BookTestUtils;
 import java.util.Arrays;
 import java.util.List;
 import org.hamcrest.Matchers;
@@ -25,10 +26,7 @@ import reactor.core.publisher.Mono;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
 @AutoConfigureMockMvc
-public class BookRestControllerWebclientMockTest {
-
-  private final String exampleTitle = "Book";
-  private final String exampleDescription = "Book description";
+public class BookRestControllerWebclientMockTest extends BookTestUtils {
 
   private WebTestClient webTestClient;
 
@@ -48,10 +46,9 @@ public class BookRestControllerWebclientMockTest {
   @Test
   @DisplayName("Given NO logged user when gets books then should return all books")
   public void givenNoLoggedUserWhenGetsAllBooksThenShouldReturnBooksList() {
-    String bookSequel = " 2";
 
-    List<Book> books = Arrays.asList(new Book(exampleTitle, exampleDescription),
-        new Book(exampleTitle + bookSequel, exampleDescription + bookSequel));
+    List<Book> books = Arrays.asList(new Book(EXAMPLE_TITLE, EXAMPLE_DESCRIPTION),
+        new Book(EXAMPLE_TITLE + BOOK_SEQUEL, EXAMPLE_DESCRIPTION + BOOK_SEQUEL));
     Mockito.when(bookService.findAll()).thenReturn(books);
 
     this.webTestClient
@@ -62,16 +59,16 @@ public class BookRestControllerWebclientMockTest {
         .isOk()
         .expectBody()
         .jsonPath("$[0].title")
-        .value(Matchers.equalTo(exampleTitle))
+        .value(Matchers.equalTo(EXAMPLE_TITLE))
         .jsonPath("$[0].description")
-        .value(Matchers.equalTo(exampleDescription))
+        .value(Matchers.equalTo(EXAMPLE_DESCRIPTION))
         .jsonPath("$.size()").isEqualTo(2);
   }
 
   @Test
   @DisplayName("Given logged user with role USER, when creates new book, then should return ok")
   public void givenLoggedUserWhenSaveNewBookThenShouldReturnOk() {
-    Book book = new Book(exampleTitle, exampleDescription);
+    Book book = new Book(EXAMPLE_TITLE, EXAMPLE_DESCRIPTION);
     Mockito.when(bookService.save(Mockito.any())).thenReturn(book);
 
     // Create book
@@ -85,9 +82,9 @@ public class BookRestControllerWebclientMockTest {
         .isCreated()
         .expectBody()
         .jsonPath("$.title")
-        .value(Matchers.equalTo(exampleTitle))
+        .value(Matchers.equalTo(EXAMPLE_TITLE))
         .jsonPath("$.description")
-        .value(Matchers.equalTo(exampleDescription));
+        .value(Matchers.equalTo(EXAMPLE_DESCRIPTION));
 
   }
 
