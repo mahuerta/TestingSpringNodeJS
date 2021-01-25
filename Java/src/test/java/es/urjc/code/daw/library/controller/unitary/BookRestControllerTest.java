@@ -32,6 +32,10 @@ import org.springframework.test.web.servlet.MockMvc;
 @DisplayName("MockMVC BookRestControllerTests")
 class BookRestControllerTest {
 
+  private final String exampleTitle = "Book";
+  private final String exampleDescription = "Book description";
+  private final String bookSequel = " 2";
+
   @Autowired
   private MockMvc mvc;
 
@@ -39,7 +43,7 @@ class BookRestControllerTest {
   private BookService bookService;
 
   @Nested
-  @DisplayName("Given No Logged user")
+  @DisplayName("Given NO logged user")
   class givenNoLoggedUser {
 
     @Nested
@@ -49,17 +53,16 @@ class BookRestControllerTest {
       @Test
       @DisplayName("then the user should get all books")
       public void thenShouldGetAllBooks() throws Exception {
-        String title = "Book 1";
-        String description = "book 1 description";
-        List<Book> books = Arrays.asList(new Book(title, description), new Book());
+        List<Book> books = Arrays.asList(new Book(exampleTitle, exampleDescription),
+                                         new Book(exampleTitle + bookSequel, exampleDescription + bookSequel));
         Mockito.when(bookService.findAll()).thenReturn(books);
 
         mvc.perform(get("/api/books/")
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$", hasSize(2)))
-            .andExpect(jsonPath("$[0].title", equalTo(title)))
-            .andExpect(jsonPath("$[0].description", equalTo(description)));
+            .andExpect(jsonPath("$[0].title", equalTo(exampleTitle)))
+            .andExpect(jsonPath("$[0].description", equalTo(exampleDescription)));
       }
 
       @Test
@@ -81,23 +84,21 @@ class BookRestControllerTest {
 
     @Nested
     @DisplayName("when the user creates new book")
-    class whenGetAllBooks {
+    class whenCreateNewBook {
 
       @Test
       @DisplayName("then should return book created")
       @WithMockUser(username = "username", roles = "USER")
       public void thenShouldReturnBook() throws Exception {
-        String title = "Book 1";
-        String description = "book 1 description";
-        Book book = new Book(title, description);
+        Book book = new Book(exampleTitle, exampleDescription);
         Mockito.when(bookService.save(Mockito.any())).thenReturn(book);
 
         mvc.perform(post("/api/books/")
             .content(TestUtils.asJsonString(book))
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.title", equalTo(title)))
-            .andExpect(jsonPath("$.description", equalTo(description)));
+            .andExpect(jsonPath("$.title", equalTo(exampleTitle)))
+            .andExpect(jsonPath("$.description", equalTo(exampleDescription)));
       }
     }
   }
@@ -108,16 +109,16 @@ class BookRestControllerTest {
 
     @Nested
     @DisplayName("when the user deletes a book")
-    class whenGetAllBooks {
+    class whenDeleteBook {
+      private final Integer exampleId = 1;
 
       @Test
       @DisplayName("then should return ok")
       @WithMockUser(username = "username", roles = "ADMIN")
       public void thenShouldReturnBook() throws Exception {
-        long id = 1;
-        Mockito.doNothing().when(bookService).delete(id);
+        Mockito.doNothing().when(bookService).delete(exampleId);
 
-        mvc.perform(delete("/api/books/1")
+        mvc.perform(delete("/api/books/"+exampleId)
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk());
       }
@@ -126,15 +127,12 @@ class BookRestControllerTest {
       @DisplayName("then should return throw exception")
       @WithMockUser(username = "username", roles = "ADMIN")
       public void thenShouldThrowException() throws Exception {
-        long id = 2;
-        Mockito.doThrow(EmptyResultDataAccessException.class).when(bookService).delete(id);
+        Mockito.doThrow(EmptyResultDataAccessException.class).when(bookService).delete(exampleId);
 
-        mvc.perform(delete("/api/books/2")
+        mvc.perform(delete("/api/books/"+exampleId)
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isNotFound());
       }
     }
-
   }
-
 }

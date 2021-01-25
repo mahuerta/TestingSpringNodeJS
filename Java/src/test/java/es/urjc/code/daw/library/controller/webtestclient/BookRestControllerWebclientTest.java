@@ -13,7 +13,6 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -28,7 +27,9 @@ import reactor.netty.http.client.HttpClient;
 @AutoConfigureWebTestClient
 public class BookRestControllerWebclientTest {
 
-  @Autowired
+  private final String exampleTitle = "Book";
+  private final String exampleDescription = "Book description";
+
   private WebTestClient webTestClient;
 
   @LocalServerPort
@@ -51,7 +52,7 @@ public class BookRestControllerWebclientTest {
 
   @Test
   @DisplayName("Given NO logged user when gets books then should return all books")
-  public void REST_getAllBooksTest() throws InterruptedException {
+  public void givenNoLoggedUserWhenGetsAllBooksThenShouldReturnBooksList() throws InterruptedException {
     this.webTestClient
         .get()
         .uri("/api/books/")
@@ -67,18 +68,14 @@ public class BookRestControllerWebclientTest {
   }
 
   @Test
-  @DisplayName("Given logged user as role: USER, when creates new book, then should return ok")
-  public void REST_saveNewBookTest() throws JsonProcessingException {
+  @DisplayName("Given logged user with role USER, when creates new book, then should return ok")
+  public void givenLoggedUserWhenSaveNewBookThenShouldReturnOk() throws JsonProcessingException {
     // Creo el libro
-    String title = "Book 1";
-    String description = "book 1 description";
-    Book book = new Book(title, description);
-
     byte[] result = this.webTestClient
         .mutate().filter(basicAuthentication("user", "pass")).build()
         .post()
         .uri("/api/books/")
-        .body(Mono.just(book), Book.class)
+        .body(Mono.just(new Book(exampleTitle, exampleDescription)), Book.class)
         .exchange()
         .expectStatus()
         .isCreated()
@@ -97,35 +94,29 @@ public class BookRestControllerWebclientTest {
         .isOk()
         .expectBody().jsonPath("id").isNotEmpty()
         .jsonPath("title")
-        .value(Matchers.containsStringIgnoringCase(title))
+        .value(Matchers.containsStringIgnoringCase(exampleTitle))
         .jsonPath("description")
-        .value(Matchers.containsStringIgnoringCase(description));
+        .value(Matchers.containsStringIgnoringCase(exampleDescription));
 
     // Borro el libro creado para no interferir en los demás test
     this.webTestClient
         .mutate().filter(basicAuthentication("admin", "pass")).build()
         .delete()
         .uri("/api/books/" + bookCreated.getId())
-        .exchange()
-        .expectStatus()
-        .isOk();
+        .exchange();
 
   }
 
   @Test
   @DisplayName("Given logged user as role: ADMIN, when deletes book, then should return ok")
-  public void REST_deleteBookTest()
+  public void givenLoggedUserAsAdminWhenDeletesBookThenShouldReturnOk()
       throws JsonProcessingException {
     // Creo un libro
-    String title = "Book 1";
-    String description = "book 1 description";
-    Book book = new Book(title, description);
-
     byte[] result = this.webTestClient
         .mutate().filter(basicAuthentication("admin", "pass")).build()
         .post()
         .uri("/api/books/")
-        .body(Mono.just(book), Book.class)
+        .body(Mono.just(new Book(exampleTitle, exampleDescription)), Book.class)
         .exchange()
         .expectStatus()
         .isCreated()

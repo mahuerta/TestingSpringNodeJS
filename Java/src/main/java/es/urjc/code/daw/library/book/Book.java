@@ -20,9 +20,9 @@ public class Book {
 
 	public Book() {}
 
-	public Book(String nombre, String description) {
+	public Book(String title, String description) {
 		super();
-		this.title = nombre;
+		this.title = title;
 		this.description = description;
 	}
 

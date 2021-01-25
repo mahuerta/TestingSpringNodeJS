@@ -27,6 +27,9 @@ import reactor.core.publisher.Mono;
 @AutoConfigureMockMvc
 public class BookRestControllerWebclientMockTest {
 
+  private final String exampleTitle = "Book";
+  private final String exampleDescription = "Book description";
+
   private WebTestClient webTestClient;
 
   @Autowired
@@ -44,10 +47,11 @@ public class BookRestControllerWebclientMockTest {
 
   @Test
   @DisplayName("Given NO logged user when gets books then should return all books")
-  public void REST_getAllBooksTest() {
-    String title = "Book 1";
-    String description = "book 1 description";
-    List<Book> books = Arrays.asList(new Book(title, description), new Book());
+  public void givenNoLoggedUserWhenGetsAllBooksThenShouldReturnBooksList() {
+    String bookSequel = " 2";
+
+    List<Book> books = Arrays.asList(new Book(exampleTitle, exampleDescription),
+        new Book(exampleTitle + bookSequel, exampleDescription + bookSequel));
     Mockito.when(bookService.findAll()).thenReturn(books);
 
     this.webTestClient
@@ -58,22 +62,19 @@ public class BookRestControllerWebclientMockTest {
         .isOk()
         .expectBody()
         .jsonPath("$[0].title")
-        .value(Matchers.equalTo(title))
+        .value(Matchers.equalTo(exampleTitle))
         .jsonPath("$[0].description")
-        .value(Matchers.equalTo(description))
+        .value(Matchers.equalTo(exampleDescription))
         .jsonPath("$.size()").isEqualTo(2);
   }
 
   @Test
-  @DisplayName("Given logged user as role: USER, when creates new book, then should return ok")
-  public void REST_saveNewBookTest() {
-    String title = "Book 1";
-    String description = "book 1 description";
-    Book book = new Book(title, description);
-
+  @DisplayName("Given logged user with role USER, when creates new book, then should return ok")
+  public void givenLoggedUserWhenSaveNewBookThenShouldReturnOk() {
+    Book book = new Book(exampleTitle, exampleDescription);
     Mockito.when(bookService.save(Mockito.any())).thenReturn(book);
 
-    // Creo el libro
+    // Create book
     this.webTestClient
         .mutate().filter(basicAuthentication("user", "pass")).build()
         .post()
@@ -84,23 +85,22 @@ public class BookRestControllerWebclientMockTest {
         .isCreated()
         .expectBody()
         .jsonPath("$.title")
-        .value(Matchers.equalTo(title))
+        .value(Matchers.equalTo(exampleTitle))
         .jsonPath("$.description")
-        .value(Matchers.equalTo(description));
+        .value(Matchers.equalTo(exampleDescription));
 
   }
 
   @Test
   @DisplayName("Given logged user as role: ADMIN, when deletes book, then should return ok")
-  public void REST_deleteBookTest() {
-    long id = 1;
-    Mockito.doNothing().when(bookService).delete(id);
+  public void givenLoggedUserAsAdminWhenDeletesBookThenShouldReturnOk() {
+    Long exampleId = 1L;
+    Mockito.doNothing().when(bookService).delete(exampleId);
 
-    // Borro el libro
     this.webTestClient
         .mutate().filter(basicAuthentication("admin", "pass")).build()
         .delete()
-        .uri("/api/books/" + id)
+        .uri("/api/books/" + exampleId)
         .exchange()
         .expectStatus()
         .isOk();

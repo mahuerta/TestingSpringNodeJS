@@ -23,10 +23,12 @@ import org.springframework.http.HttpStatus;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class BookRestControllerTest {
 
-  @LocalServerPort
-  int port;
+  private final String exampleTitle = "Book 1";
+  private final String exampleDescription = "Book 1 description";
+  private String baseUrl;
 
-  String baseUrl;
+  @LocalServerPort
+  private int port;
 
   @BeforeEach
   public void setUp() {
@@ -50,95 +52,81 @@ class BookRestControllerTest {
   }
 
   @Test
-  @DisplayName("Given logged user as role: USER, when creates new book, then should return ok")
+  @DisplayName("Given logged user with role USER, when creates new book, then should return ok")
   public void givenLoggedUserWhenSaveNewBookThenShouldReturnOk() {
-    // Creo el libro
-    String title = "Book 1";
-    String description = "book 1 description";
-    Book book = new Book(title, description);
+    // Create Book
+    Response responseCreate = createBook(exampleTitle, exampleDescription);
 
-    Response responseCreate =
-        given()
-          .relaxedHTTPSValidation()
-          .auth()
-          .basic("user", "pass")
-          .contentType(ContentType.JSON)
-          .body(TestUtils.asJsonString(book))
-        .when()
-          .post(baseUrl + "/api/books/")
-        .andReturn();
-
-    Integer id = from(responseCreate.getBody().asString()).get("id");
-
+    // Validations
     responseCreate
         .then()
           .statusCode(HttpStatus.CREATED.value())
           .body("id", notNullValue(),
-              "title", equalTo(title),
-              "description", containsStringIgnoringCase(description))
-    .log().body();
+              "title", equalTo(exampleTitle),
+              "description", containsStringIgnoringCase(exampleDescription));
 
-    // Compruebo recuperar libro es correcto
-    given()
-        .relaxedHTTPSValidation()
-      .when()
-        .get(baseUrl + "/api/books/"+ id)
-      .then()
-        .body("id", notNullValue(),
-            "title", equalTo(title),
-            "description", containsStringIgnoringCase(description));
+    Integer id = from(responseCreate.getBody().asString()).get("id");
 
-    // Borro el libro creado para no interferir en los demás test
-    given()
-        .relaxedHTTPSValidation()
-        .auth()
-        .basic("admin", "pass")
-    .when()
-        .delete(baseUrl + "/api/books/" + id)
-    .then()
-        .statusCode(HttpStatus.OK.value());
+    // Get book is OK
+    getBook(id)
+        .then()
+          .statusCode(HttpStatus.OK.value())
+          .body("id", notNullValue(),
+              "title", equalTo(exampleTitle),
+              "description", containsStringIgnoringCase(exampleDescription));
+
+    // Delete book
+    deleteBook(id);
   }
 
   @Test
   @DisplayName("Given logged user as role: ADMIN, when deletes book, then should return ok")
   public void givenLoggedUserAsAdminWhenDeletesBookThenShouldReturnOk() {
-
-    // Creo un libro
-    String title = "Book 1";
-    String description = "book 1 description";
-    Book book = new Book(title, description);
-
-    Response responseCreate =
-        given()
-            .relaxedHTTPSValidation()
-            .auth()
-            .basic("user", "pass")
-            .contentType(ContentType.JSON)
-            .body(TestUtils.asJsonString(book))
-        .when()
-            .post(baseUrl + "/api/books/")
-        .andReturn();
-
+    // Create Book
+    Response responseCreate = createBook(exampleTitle, exampleDescription);
     Integer id = from(responseCreate.getBody().asString()).get("id");
 
-    // Borro el libro
-    given()
+    // Delete book
+    Response responseDelete = deleteBook(id);
+    responseDelete
+        .then()
+          .statusCode(HttpStatus.OK.value());
+
+    // Validations
+    getBook(id)
+        .then()
+          .statusCode(HttpStatus.NOT_FOUND.value());
+
+  }
+
+  private Response createBook(String title, String description) {
+    return given()
+        .relaxedHTTPSValidation()
+        .auth()
+        .basic("user", "pass")
+        .contentType(ContentType.JSON)
+        .body(TestUtils.asJsonString(new Book(title, description)))
+        .when()
+        .post(baseUrl + "/api/books/")
+        .andReturn();
+  }
+
+  private Response getBook(Integer id) {
+    return given()
+        .relaxedHTTPSValidation()
+        .when()
+        .get(baseUrl + "/api/books/"+ id)
+        .andReturn();
+  }
+
+  private Response deleteBook(Integer id){
+    return given()
         .relaxedHTTPSValidation()
         .auth()
         .basic("admin", "pass")
-    .when()
+        .when()
         .delete(baseUrl + "/api/books/" + (id))
-    .then()
-        .statusCode(HttpStatus.OK.value());
-
-    // Compruebo recuperar libro NO es correcto
-    given()
-        .relaxedHTTPSValidation()
-    .when()
-        .get(baseUrl + "/api/books/"+ id)
-    .then()
-        .statusCode(HttpStatus.NOT_FOUND.value());
-
+        .andReturn();
   }
 
 }
