@@ -19,10 +19,6 @@ Proyecto para introducir test unitarios y de integración en un encunciado facil
 👤 **mahuerta**: Miguel Ángel Huerta Rodríguez
 * Github: [@mahuerta](https://github.com/mahuerta)
 
-# Sobre la entrega:
-
-# Ejecución de la aplicación:
-
 
 ## Apuntes teóricos
 - Los test rest, son test end to end (e2e), test de integración. Para que funcionen es necesario tener docker puesto que se levanta una base de datos en un contenedor.
