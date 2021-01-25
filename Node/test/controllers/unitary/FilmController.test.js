@@ -5,89 +5,63 @@ const request = supertest(app);
 const AWS = require('aws-sdk');
 jest.mock('aws-sdk');
 
-
-const mockedData = {
-  Items: [
-    {
-      id: 0,
-      title: 'StarWars La Amenaza Fantasma',
-      year: 1999,
-      director: 'George Lucas'
-    },
-    {
-      id: 1,
-      title: 'The Avengers',
-      year: 2012,
-      director: 'Joss Whedon'
-    }
-  ]
-}
-
-beforeAll(() => {
-
-  const put = (params, cb) => {
-    const error = Object.keys(params.Item).length <= 1 ? new Error('Error at mocked AWS module') : null;
-    cb(error, params.Item);
-  };
-
-  const scan = (params, cb) => {
-    cb(null, mockedData);
-  };
-
-  AWS.DynamoDB.DocumentClient = jest.fn().mockReturnValue({ put, scan });
-});
-
-
-afterAll(() => {
-  AWS.DynamoDB.DocumentClient.mockReset()
-});
-
-const getMockedFilm = (number) => mockedData.Items[number - 1];
-
 test('Get films', async () => {
+  let data = {
+    "Items": [
+      {
+        "id": 1,
+        "titulo": "TITULO"
+      },
+      {
+        "id": 2,
+        "titulo": "TITULO 2"
+      }
+    ]
+  }
 
-  const response = await request.get('/api/films/').expect(200);
-  const [{ title: title1 }, { title: title2 }] = response.body;
+  AWS.DynamoDB.DocumentClient.prototype.scan.mockImplementation((_, cb) => {
+    cb(null, data);
+  });
 
-  expect(response.statusCode).toBe(200);
-  expect(title1).toBe(getMockedFilm(1).title);
-  expect(title2).toBe(getMockedFilm(2).title);
+  const response = await request.get('/api/films/')
+  .expect('Content-type', /json/)
+  .expect(200)
 
-});
+  expect(response.body).toEqual(expect.arrayContaining(data.Items));
 
-//Este test para saber si hay 0?
+})
+
 test('Get no films', async () => {
   let data = {
     "Items": []
   }
 
-  const response = await request.get('/api/films/').expect(200)
+  AWS.DynamoDB.DocumentClient.prototype.scan.mockImplementation((_, cb) => {
+    cb(null, data);
+  });
+
+  const response = await request.get('/api/films/')
+  .expect('Content-type', /json/)
+  .expect(200)
 
   expect(response.body).toEqual(expect.arrayContaining(data.Items));
 
-});
+})
 
 test('Create film', async () => {
-  const film = { title: 'StarWars La Amenaza fantasma', year: 1999, director: 'George Lucas' };
+  let film = {
+    "titulo": "TITULO"
+  };
 
+  AWS.DynamoDB.DocumentClient.prototype.put.mockImplementation((_, cb) => {
+    cb(null, film);
+  });
 
-  const response = await request.post('/api/films/').send(film).expect(201);
-  const { title, year, director, id } = response.body;
+  const response = await request.post('/api/films/')
+  .expect('Content-type', /json/)
+  .send(film)
+  .expect(201)
 
+  expect(response.body.id).toEqual((expect.any(Number)));
 
-  expect(id).toBe(0);
-
-  expect(title).toBe(film.title);
-  expect(year).toBe(film.year);
-  expect(director).toBe(film.director);
-  expect(response.statusCode).toBe(201);
-});
-
-
-test('Create a new film fails when a correct film is not provided', async () => {
-
-  const response = await request.post('/api/films').send(null).expect(400);
-
-  expect(response.statusCode).toBe(400);
-  expect(response.error).not.toBeNull();
-});
+})
