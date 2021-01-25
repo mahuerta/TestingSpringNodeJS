@@ -20,6 +20,7 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.test.web.reactive.server.WebTestClient.BodyContentSpec;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 
@@ -70,26 +71,22 @@ public class BookRestControllerWebclientTest {
   @Test
   @DisplayName("Given logged user with role USER, when creates new book, then should return ok")
   public void givenLoggedUserWhenSaveNewBookThenShouldReturnOk() throws JsonProcessingException {
-    // Creo el libro
-    byte[] result = this.webTestClient
-        .mutate().filter(basicAuthentication("user", "pass")).build()
-        .post()
-        .uri("/api/books/")
-        .body(Mono.just(new Book(exampleTitle, exampleDescription)), Book.class)
-        .exchange()
+    // Create book
+    WebTestClient.ResponseSpec responseCreate = this.createBook(exampleTitle, exampleDescription);
+
+    // Header validation
+    responseCreate
         .expectStatus()
-        .isCreated()
-        .expectBody().jsonPath("id").isNotEmpty()
-        .returnResult().getResponseBody();
+        .isCreated();
 
-    Book bookCreated = new ObjectMapper().readValue(new String(result), Book.class);
+    // Body validation
+    BodyContentSpec responseBody = responseCreate.expectBody();
+    responseBody.jsonPath("id").isNotEmpty();
 
-    // Compruebo recuperar libro es correcto
-    this.webTestClient
-        .mutate().filter(basicAuthentication("user", "pass")).build()
-        .get()
-        .uri("/api/books/" + bookCreated.getId())
-        .exchange()
+    Book bookCreated = new ObjectMapper().readValue(new String(responseBody.returnResult().getResponseBody()), Book.class);
+
+    // Get book OK
+    this.getBook(bookCreated.getId())
         .expectStatus()
         .isOk()
         .expectBody().jsonPath("id").isNotEmpty()
@@ -98,50 +95,52 @@ public class BookRestControllerWebclientTest {
         .jsonPath("description")
         .value(Matchers.containsStringIgnoringCase(exampleDescription));
 
-    // Borro el libro creado para no interferir en los demás test
-    this.webTestClient
-        .mutate().filter(basicAuthentication("admin", "pass")).build()
-        .delete()
-        .uri("/api/books/" + bookCreated.getId())
-        .exchange();
-
+    // Delete book
+    deleteBook(bookCreated.getId());
   }
 
   @Test
   @DisplayName("Given logged user as role: ADMIN, when deletes book, then should return ok")
   public void givenLoggedUserAsAdminWhenDeletesBookThenShouldReturnOk()
       throws JsonProcessingException {
-    // Creo un libro
-    byte[] result = this.webTestClient
-        .mutate().filter(basicAuthentication("admin", "pass")).build()
-        .post()
-        .uri("/api/books/")
-        .body(Mono.just(new Book(exampleTitle, exampleDescription)), Book.class)
-        .exchange()
-        .expectStatus()
-        .isCreated()
-        .expectBody().jsonPath("id").isNotEmpty()
-        .returnResult().getResponseBody();
+    // Create book
+    WebTestClient.ResponseSpec responseCreate = this.createBook(exampleTitle, exampleDescription);
+    Book bookCreated = new ObjectMapper().readValue(new String(responseCreate.expectBody().returnResult().getResponseBody()), Book.class);
 
-    Book bookCreated = new ObjectMapper().readValue(new String(result), Book.class);
-
-    // Borro el libro
-    this.webTestClient
-        .mutate().filter(basicAuthentication("admin", "pass")).build()
-        .delete()
-        .uri("/api/books/" + bookCreated.getId())
-        .exchange()
+    // Delete book
+    this.deleteBook(bookCreated.getId())
         .expectStatus()
         .isOk();
 
-    // Compruebo recuperar libro NO es correcto
-    this.webTestClient
-        .mutate().filter(basicAuthentication("admin", "pass")).build()
-        .get()
-        .uri("/api/books/" + bookCreated.getId())
-        .exchange()
+    // Get book NOT exists
+    this.getBook(bookCreated.getId())
         .expectStatus()
         .is4xxClientError();
+  }
+
+  private WebTestClient.ResponseSpec deleteBook(Long id) {
+    return this.webTestClient
+        .mutate().filter(basicAuthentication("admin", "pass")).build()
+        .delete()
+        .uri("/api/books/" + id)
+        .exchange();
+  }
+
+  private WebTestClient.ResponseSpec getBook(Long id) {
+    return this.webTestClient
+        .mutate().filter(basicAuthentication("admin", "pass")).build()
+        .get()
+        .uri("/api/books/" + id)
+        .exchange();
+  }
+
+  private WebTestClient.ResponseSpec createBook(String title, String description){
+    return this.webTestClient
+        .mutate().filter(basicAuthentication("user", "pass")).build()
+        .post()
+        .uri("/api/books/")
+        .body(Mono.just(new Book(exampleTitle, exampleDescription)), Book.class)
+        .exchange();
   }
 
 }
