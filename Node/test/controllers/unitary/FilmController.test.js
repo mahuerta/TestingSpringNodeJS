@@ -48,6 +48,7 @@ test('Get no films', async () => {
 
 })
 
+// TODO: Posiblemente sea necesario meter más validaciones de la película creada
 test('Create film', async () => {
   let film = {
     "titulo": "TITULO"

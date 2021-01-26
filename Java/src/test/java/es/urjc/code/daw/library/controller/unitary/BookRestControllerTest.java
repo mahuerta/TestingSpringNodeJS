@@ -2,6 +2,7 @@ package es.urjc.code.daw.library.controller.unitary;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -88,7 +89,7 @@ class BookRestControllerTest extends BookTestUtils {
       @WithMockUser(username = "username", roles = "USER")
       public void thenShouldReturnBook() throws Exception {
         Book book = new Book(EXAMPLE_TITLE, EXAMPLE_DESCRIPTION);
-        Mockito.when(bookService.save(Mockito.any())).thenReturn(book);
+        Mockito.when(bookService.save(Mockito.any(Book.class))).thenReturn(book);
 
         mvc.perform(post("/api/books/")
             .content(TestUtils.asJsonString(book))
@@ -113,7 +114,7 @@ class BookRestControllerTest extends BookTestUtils {
       @DisplayName("then should return ok")
       @WithMockUser(username = "username", roles = "ADMIN")
       public void thenShouldReturnBook() throws Exception {
-        Mockito.doNothing().when(bookService).delete(exampleId);
+        Mockito.doNothing().when(bookService).delete(isA(Long.class));
 
         mvc.perform(delete("/api/books/"+exampleId)
             .contentType(MediaType.APPLICATION_JSON))
@@ -124,7 +125,7 @@ class BookRestControllerTest extends BookTestUtils {
       @DisplayName("then should return throw exception")
       @WithMockUser(username = "username", roles = "ADMIN")
       public void thenShouldThrowException() throws Exception {
-        Mockito.doThrow(EmptyResultDataAccessException.class).when(bookService).delete(exampleId);
+        Mockito.doThrow(EmptyResultDataAccessException.class).when(bookService).delete(isA(Long.class));
 
         mvc.perform(delete("/api/books/"+exampleId)
             .contentType(MediaType.APPLICATION_JSON))

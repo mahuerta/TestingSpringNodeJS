@@ -34,6 +34,7 @@ public class BookRestControllerWebclientTest extends BookTestUtils {
   @LocalServerPort
   private int port;
 
+  // TODO: Utilizar una clase de configuración para inyectarla en los test que sean necesarios
   @BeforeEach
   public void setup() throws SSLException {
     SslContext sslContext = SslContextBuilder
@@ -74,6 +75,9 @@ public class BookRestControllerWebclientTest extends BookTestUtils {
   public void givenLoggedUserWhenSaveNewBookThenShouldReturnOk() throws JsonProcessingException {
     // Create book
     WebTestClient.ResponseSpec responseCreate = this.createBook(EXAMPLE_TITLE, EXAMPLE_DESCRIPTION);
+
+    // Otra forma de obtener el libro a partir del contenido de la petición, mucho más sencilla.
+    Mono<Book> book = responseCreate.expectStatus().isCreated().returnResult(Book.class).getResponseBody().single();
 
     // Header validation
     responseCreate

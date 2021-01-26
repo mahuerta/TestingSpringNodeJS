@@ -32,9 +32,11 @@ class BookRestControllerTest extends BookTestUtils {
   @BeforeEach
   public void setUp() {
     RestAssured.port = port;
+    RestAssured.useRelaxedHTTPSValidation();
     baseUrl = "https://localhost:" + port;
   }
 
+  // TODO: Este test debería crear sus propios datos, no utilizar los datos de la inicialización.
   @Test
   @DisplayName("Given NO logged user when gets books then should return all books")
   public void givenNoLoggedUserWhenGetsAllBooksThenShouldReturnBooksList() {

@@ -69,7 +69,7 @@ public class BookRestControllerWebclientMockTest extends BookTestUtils {
   @DisplayName("Given logged user with role USER, when creates new book, then should return ok")
   public void givenLoggedUserWhenSaveNewBookThenShouldReturnOk() {
     Book book = new Book(EXAMPLE_TITLE, EXAMPLE_DESCRIPTION);
-    Mockito.when(bookService.save(Mockito.any())).thenReturn(book);
+    Mockito.when(bookService.save(Mockito.any(Book.class))).thenReturn(book);
 
     // Create book
     this.webTestClient
@@ -92,7 +92,7 @@ public class BookRestControllerWebclientMockTest extends BookTestUtils {
   @DisplayName("Given logged user as role: ADMIN, when deletes book, then should return ok")
   public void givenLoggedUserAsAdminWhenDeletesBookThenShouldReturnOk() {
     Long exampleId = 1L;
-    Mockito.doNothing().when(bookService).delete(exampleId);
+    Mockito.doNothing().when(bookService).delete(Mockito.anyLong());
 
     this.webTestClient
         .mutate().filter(basicAuthentication("admin", "pass")).build()
