@@ -23,3 +23,8 @@ Proyecto para introducir test unitarios y de integración en un encunciado facil
 ## Apuntes teóricos
 - Los test rest, son test end to end (e2e), test de integración. Para que funcionen es necesario tener docker puesto que se levanta una base de datos en un contenedor.
 - En los test unitarios está mockeado el acceso a la base de datos.
+
+## Testing
+1. Pruebas unitarias un componente. mockeas dependencias al exterior
+2. pruebas de integración varios componentes
+3. pruebas de sistema, todas las pruebas de integracion
